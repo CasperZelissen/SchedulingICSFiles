@@ -1,3 +1,4 @@
+/* Ensure calendar uses full height if needed */
 html, body {
   margin: 0;
   padding: 0;
@@ -5,7 +6,29 @@ html, body {
   font-size: 14px;
 }
 
+/* Center and size the calendar */
 #calendar {
   max-width: 1100px;
   margin: 40px auto;
+}
+
+/* Style the dropdown inside FullCalendar toolbar */
+.fc-eventSelector-button select {
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Optional: match FullCalendar hover effect */
+.fc-eventSelector-button select:hover {
+  border-color: #888;
+}
+
+/* Optional: remove focus outline for cleaner look */
+.fc-eventSelector-button select:focus {
+  outline: none;
+  box-shadow: 0 0 2px #666;
 }
