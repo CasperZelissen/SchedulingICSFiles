@@ -1,83 +1,63 @@
+Here’s a cleaned-up and fully working version:
+
+Cleaned HTML + JS
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const calendarEl = document.getElementById('calendar');
+      document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'timeGridWeek',
-    headerToolbar: {
-      left: 'title',
-      center: 'eventSelector',
-      right: 'today prev,next'
-    },
-    customButtons: {
-      eventSelector: {
-        text: '', // leave empty
-        click: function() {}
-      }
-    },
-    datesSet: function() {
-      restoreSelection(); // only restore, don’t repopulate
-    }
-  });
-
-  calendar.render();
-
-  let sourcesData = [];
-  let currentSource = null;
-  let selectEl = null; // store reference to the <select>
-
-  // Fetch sources once
-  fetch('./sources.json')
-    .then(res => res.json())
-    .then(data => {
-      sourcesData = data;
-
-      // Load first source automatically
-      if (data.length > 0) {
-        currentSource = data[0].file;
-        calendar.addEventSource({ url: currentSource });
-      }
-
-      // Inject dropdown once
-      const button = document.querySelector('.fc-eventSelector-button');
-      if (button) {
-        selectEl = document.createElement('select');
-        selectEl.style.marginLeft = '5px';
-        button.appendChild(selectEl);
-
-        // Populate options
-        sourcesData.forEach(source => {
-          const option = document.createElement('option');
-          option.value = source.file;
-          option.textContent = source.name;
-          selectEl.appendChild(option);
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'timeGridWeek',
+          headerToolbar: {
+            left: 'title',
+            center: 'eventSelector', // this is your custom button/dropdown
+            right: 'today prev,next'
+          },
+          customButtons: {
+            eventSelector: {
+              text: 'Loading...', // temporary text
+              click: function() {} // not needed
+            }
+          }
         });
 
-        // Restore initial selection
-        selectEl.value = currentSource;
+        calendar.render();
 
-        // Handle change
-        selectEl.addEventListener('change', function() {
-          currentSource = selectEl.value;
-          calendar.removeAllEventSources();
-          calendar.addEventSource({ url: currentSource });
-        });
-      }
-    });
+        // Fetch available sources
+        fetch('./sources.json')
+          .then(res => res.json())
+          .then(data => {
+            const button = document.querySelector('.fc-eventSelector-button');
+            const select = document.createElement('select');
 
-  // Only restore selection on week navigation
-  function restoreSelection() {
-    if (selectEl && currentSource) {
-      selectEl.value = currentSource;
-    }
-  }
-});
+            data.forEach((source, index) => {
+              const option = document.createElement('option');
+              option.value = source.file;
+              option.textContent = source.name;
+              select.appendChild(option);
+
+              // Load first source automatically
+              if (index === 0) {
+                calendar.addEventSource({ url: source.file });
+              }
+            });
+
+            // Replace button text with dropdown
+            button.innerHTML = '';
+            button.appendChild(select);
+
+            // Handle dropdown changes
+            select.addEventListener('change', function() {
+              calendar.removeAllEventSources();
+              calendar.addEventSource({ url: select.value });
+            });
+          });
+      });
     </script>
   </head>
 
