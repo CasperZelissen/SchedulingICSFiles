@@ -12,34 +12,54 @@ document.addEventListener('DOMContentLoaded', function() {
   const selector = document.getElementById('eventSelector');
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'timeGridWeek'
+    initialView: 'timeGridWeek',
+    headerToolbar: {
+      left: 'title',
+      center: 'eventSelector',
+      right: 'today prev,next' 
+    },
+
+    customButtons: {
+      eventSelector: {
+        text: 'Select Events',
+        click: function() {
+          // optional (we won't use click much)
+        }
+      }
+    }
   });
 
   calendar.render();
 
-  // Load available sources
+  // Fetch the available sources
   fetch('./sources.json')
     .then(res => res.json())
     .then(data => {
+      const button = document.querySelector('.fc-eventSelector-button');
+      const select = document.createElement('select');
+
       data.forEach((source, index) => {
         const option = document.createElement('option');
         option.value = source.file;
         option.textContent = source.name;
-        selector.appendChild(option);
+        select.appendChild(option);
 
-        // Load first one automatically
+        // Load the first source automatically
         if (index === 0) {
           calendar.addEventSource({ url: source.file });
         }
       });
-    });
 
-  // Switch sources
-  selector.addEventListener('change', function() {
-    calendar.removeAllEventSources();
-    calendar.addEventSource({ url: selector.value });
-  });
-});
+      // Replace button text with the dropdown
+      button.innerHTML = '';
+      button.appendChild(select);
+
+      // Handle switching sources
+      select.addEventListener('change', function() {
+        calendar.removeAllEventSources();
+        calendar.addEventSource({ url: select.value });
+      });
+    });
 </script>
   </head>
 
