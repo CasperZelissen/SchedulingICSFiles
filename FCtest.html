@@ -21,40 +21,46 @@
       }
     },
     datesSet: function() {
-      injectDropdown(); // re-inject dropdown every time the calendar changes week
+      injectDropdown(); // re-inject dropdown on week change
     }
   });
 
   calendar.render();
 
   let sourcesData = [];
+  let currentSource = null; // store selected source
 
-  // Fetch the available sources once
+  // Fetch sources once
   fetch('./sources.json')
     .then(res => res.json())
     .then(data => {
       sourcesData = data;
-      injectDropdown();
-      // load first source
+
+      // Load first source automatically
       if (data.length > 0) {
-        calendar.addEventSource({ url: data[0].file });
+        currentSource = data[0].file;
+        calendar.addEventSource({ url: currentSource });
       }
+
+      injectDropdown();
     });
 
   function injectDropdown() {
     const button = document.querySelector('.fc-eventSelector-button');
     if (!button) return;
 
-    // Avoid creating multiple selects
+    // Check if select exists, create if needed
     let select = button.querySelector('select');
     if (!select) {
       select = document.createElement('select');
-      button.innerHTML = ''; // clear any text
+      button.innerHTML = '';
       button.appendChild(select);
 
+      // Update calendar when selection changes
       select.addEventListener('change', function() {
+        currentSource = select.value; // store selection
         calendar.removeAllEventSources();
-        calendar.addEventSource({ url: select.value });
+        calendar.addEventSource({ url: currentSource });
       });
     }
 
@@ -66,6 +72,11 @@
       option.textContent = source.name;
       select.appendChild(option);
     });
+
+    // Restore the currently selected source
+    if (currentSource) {
+      select.value = currentSource;
+    }
   }
 });
     </script>
