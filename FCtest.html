@@ -1,71 +1,64 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
     <link rel="stylesheet" href="styles.css">
-    <meta charset='utf-8' />
-
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js'></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const calendarEl = document.getElementById('calendar');
-  const selector = document.getElementById('eventSelector');
+      document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'timeGridWeek',
-    headerToolbar: {
-      left: 'title',
-      center: 'eventSelector',
-      right: 'today prev,next' 
-    },
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'timeGridWeek',
+          headerToolbar: {
+            left: 'title',
+            center: 'eventSelector', // this is your custom button/dropdown
+            right: 'today prev,next'
+          },
+          customButtons: {
+            eventSelector: {
+              text: 'Loading...', // temporary text
+              click: function() {} // not needed
+            }
+          }
+        });
 
-    customButtons: {
-      eventSelector: {
-        text: 'Select Events',
-        click: function() {
-          // optional (we won't use click much)
-        }
-      }
-    }
-  });
+        calendar.render();
 
-  calendar.render();
+        // Fetch available sources
+        fetch('./sources.json')
+          .then(res => res.json())
+          .then(data => {
+            const button = document.querySelector('.fc-eventSelector-button');
+            const select = document.createElement('select');
 
-  // Fetch the available sources
-  fetch('./sources.json')
-    .then(res => res.json())
-    .then(data => {
-      const button = document.querySelector('.fc-eventSelector-button');
-      const select = document.createElement('select');
+            data.forEach((source, index) => {
+              const option = document.createElement('option');
+              option.value = source.file;
+              option.textContent = source.name;
+              select.appendChild(option);
 
-      data.forEach((source, index) => {
-        const option = document.createElement('option');
-        option.value = source.file;
-        option.textContent = source.name;
-        select.appendChild(option);
+              // Load first source automatically
+              if (index === 0) {
+                calendar.addEventSource({ url: source.file });
+              }
+            });
 
-        // Load the first source automatically
-        if (index === 0) {
-          calendar.addEventSource({ url: source.file });
-        }
+            // Replace button text with dropdown
+            button.innerHTML = '';
+            button.appendChild(select);
+
+            // Handle dropdown changes
+            select.addEventListener('change', function() {
+              calendar.removeAllEventSources();
+              calendar.addEventSource({ url: select.value });
+            });
+          });
       });
-
-      // Replace button text with the dropdown
-      button.innerHTML = '';
-      button.appendChild(select);
-
-      // Handle switching sources
-      select.addEventListener('change', function() {
-        calendar.removeAllEventSources();
-        calendar.addEventSource({ url: select.value });
-      });
-    });
-</script>
+    </script>
   </head>
 
   <body>
-      <select id="eventSelector">
-      </select>
-    <div id='calendar'></div>
+    <div id="calendar"></div>
   </body>
 </html>
