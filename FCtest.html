@@ -12,17 +12,17 @@ document.addEventListener('DOMContentLoaded', function() {
     initialView: 'timeGridWeek',
     headerToolbar: {
       left: 'title',
-      center: 'eventSelector', // custom button placeholder
+      center: 'eventSelector',
       right: 'today prev,next'
     },
     customButtons: {
       eventSelector: {
-        text: '', // keep empty
-        click: function() {} // not used
+        text: '', // leave empty
+        click: function() {}
       }
     },
     datesSet: function() {
-      injectDropdown();
+      restoreSelection(); // only restore, don’t repopulate
     }
   });
 
@@ -30,7 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   let sourcesData = [];
   let currentSource = null;
+  let selectEl = null; // store reference to the <select>
 
+  // Fetch sources once
   fetch('./sources.json')
     .then(res => res.json())
     .then(data => {
@@ -42,38 +44,38 @@ document.addEventListener('DOMContentLoaded', function() {
         calendar.addEventSource({ url: currentSource });
       }
 
-      injectDropdown();
+      // Inject dropdown once
+      const button = document.querySelector('.fc-eventSelector-button');
+      if (button) {
+        selectEl = document.createElement('select');
+        selectEl.style.marginLeft = '5px';
+        button.appendChild(selectEl);
+
+        // Populate options
+        sourcesData.forEach(source => {
+          const option = document.createElement('option');
+          option.value = source.file;
+          option.textContent = source.name;
+          selectEl.appendChild(option);
+        });
+
+        // Restore initial selection
+        selectEl.value = currentSource;
+
+        // Handle change
+        selectEl.addEventListener('change', function() {
+          currentSource = selectEl.value;
+          calendar.removeAllEventSources();
+          calendar.addEventSource({ url: currentSource });
+        });
+      }
     });
 
-  function injectDropdown() {
-    const button = document.querySelector('.fc-eventSelector-button');
-    if (!button) return;
-
-    // Check if select already exists
-    let select = button.querySelector('select');
-    if (!select) {
-      select = document.createElement('select');
-      select.style.marginLeft = '5px'; // optional spacing
-      button.appendChild(select);
-
-      select.addEventListener('change', function() {
-        currentSource = select.value;
-        calendar.removeAllEventSources();
-        calendar.addEventSource({ url: currentSource });
-      });
+  // Only restore selection on week navigation
+  function restoreSelection() {
+    if (selectEl && currentSource) {
+      selectEl.value = currentSource;
     }
-
-    // Populate options
-    select.innerHTML = '';
-    sourcesData.forEach(source => {
-      const option = document.createElement('option');
-      option.value = source.file;
-      option.textContent = source.name;
-      select.appendChild(option);
-    });
-
-    // Restore current selection
-    if (currentSource) select.value = currentSource;
   }
 });
     </script>
