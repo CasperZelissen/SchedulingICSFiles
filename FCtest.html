@@ -6,55 +6,68 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
+  const calendarEl = document.getElementById('calendar');
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'timeGridWeek',
-          headerToolbar: {
-            left: 'title',
-            center: 'eventSelector', // this is your custom button/dropdown
-            right: 'today prev,next'
-          },
-          customButtons: {
-            eventSelector: {
-              text: 'Loading...', // temporary text
-              click: function() {} // not needed
-            }
-          }
-        });
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'timeGridWeek',
+    headerToolbar: {
+      left: 'title',
+      center: 'eventSelector',
+      right: 'today prev,next'
+    },
+    customButtons: {
+      eventSelector: {
+        click: function() {} // not used
+      }
+    },
+    datesSet: function() {
+      injectDropdown(); // re-inject dropdown every time the calendar changes week
+    }
+  });
 
-        calendar.render();
+  calendar.render();
 
-        // Fetch available sources
-        fetch('./sources.json')
-          .then(res => res.json())
-          .then(data => {
-            const button = document.querySelector('.fc-eventSelector-button');
-            const select = document.createElement('select');
+  let sourcesData = [];
 
-            data.forEach((source, index) => {
-              const option = document.createElement('option');
-              option.value = source.file;
-              option.textContent = source.name;
-              select.appendChild(option);
+  // Fetch the available sources once
+  fetch('./sources.json')
+    .then(res => res.json())
+    .then(data => {
+      sourcesData = data;
+      injectDropdown();
+      // load first source
+      if (data.length > 0) {
+        calendar.addEventSource({ url: data[0].file });
+      }
+    });
 
-              // Load first source automatically
-              if (index === 0) {
-                calendar.addEventSource({ url: source.file });
-              }
-            });
+  function injectDropdown() {
+    const button = document.querySelector('.fc-eventSelector-button');
+    if (!button) return;
 
-            // Replace button text with dropdown
-            button.innerHTML = '';
-            button.appendChild(select);
+    // Avoid creating multiple selects
+    let select = button.querySelector('select');
+    if (!select) {
+      select = document.createElement('select');
+      button.innerHTML = ''; // clear any text
+      button.appendChild(select);
 
-            // Handle dropdown changes
-            select.addEventListener('change', function() {
-              calendar.removeAllEventSources();
-              calendar.addEventSource({ url: select.value });
-            });
-          });
+      select.addEventListener('change', function() {
+        calendar.removeAllEventSources();
+        calendar.addEventSource({ url: select.value });
       });
+    }
+
+    // Populate options
+    select.innerHTML = '';
+    sourcesData.forEach(source => {
+      const option = document.createElement('option');
+      option.value = source.file;
+      option.textContent = source.name;
+      select.appendChild(option);
+    });
+  }
+});
     </script>
   </head>
 
