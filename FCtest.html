@@ -7,29 +7,40 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js'></script>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var selector = document.getElementById('eventSelector');
-    
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'timeGridWeek',
-          events: {
-            url: selector.value
-          }
-        });
-    
-        calendar.render();
-    
-        // 🔁 Change event source when dropdown changes
-        selector.addEventListener('change', function() {
-          calendar.removeAllEventSources(); // remove old source
-    
-          calendar.addEventSource({
-            url: selector.value
-          });
-        });
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+  const selector = document.getElementById('eventSelector');
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'timeGridWeek'
+  });
+
+  calendar.render();
+
+  // Load available sources
+  fetch('./sources.json')
+    .then(res => res.json())
+    .then(data => {
+      data.forEach((source, index) => {
+        const option = document.createElement('option');
+        option.value = source.file;
+        option.textContent = source.name;
+        selector.appendChild(option);
+
+        // Load first one automatically
+        if (index === 0) {
+          calendar.addEventSource({ url: source.file });
+        }
       });
-    </script>
+    });
+
+  // Switch sources
+  selector.addEventListener('change', function() {
+    calendar.removeAllEventSources();
+    calendar.addEventSource({ url: selector.value });
+  });
+});
+</script>
   </head>
 
   <body>
