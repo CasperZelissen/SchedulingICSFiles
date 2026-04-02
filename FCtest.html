@@ -5,32 +5,32 @@
     <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
   const calendarEl = document.getElementById('calendar');
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'timeGridWeek',
     headerToolbar: {
       left: 'title',
-      center: 'eventSelector',
+      center: 'eventSelector', // custom button placeholder
       right: 'today prev,next'
     },
     customButtons: {
       eventSelector: {
+        text: '', // keep empty
         click: function() {} // not used
       }
     },
     datesSet: function() {
-      injectDropdown(); // re-inject dropdown on week change
+      injectDropdown();
     }
   });
 
   calendar.render();
 
   let sourcesData = [];
-  let currentSource = null; // store selected source
+  let currentSource = null;
 
-  // Fetch sources once
   fetch('./sources.json')
     .then(res => res.json())
     .then(data => {
@@ -49,16 +49,15 @@
     const button = document.querySelector('.fc-eventSelector-button');
     if (!button) return;
 
-    // Check if select exists, create if needed
+    // Check if select already exists
     let select = button.querySelector('select');
     if (!select) {
       select = document.createElement('select');
-      button.innerHTML = '';
+      select.style.marginLeft = '5px'; // optional spacing
       button.appendChild(select);
 
-      // Update calendar when selection changes
       select.addEventListener('change', function() {
-        currentSource = select.value; // store selection
+        currentSource = select.value;
         calendar.removeAllEventSources();
         calendar.addEventSource({ url: currentSource });
       });
@@ -73,10 +72,8 @@
       select.appendChild(option);
     });
 
-    // Restore the currently selected source
-    if (currentSource) {
-      select.value = currentSource;
-    }
+    // Restore current selection
+    if (currentSource) select.value = currentSource;
   }
 });
     </script>
