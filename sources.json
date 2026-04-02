@@ -1,0 +1,4 @@
+[
+  { "name": "Option 1", "file": "./fcJson1.json" },
+  { "name": "Option 2", "file": "./fcJson2.json" }
+]
