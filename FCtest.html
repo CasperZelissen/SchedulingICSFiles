@@ -9,20 +9,34 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
-
+        var selector = document.getElementById('eventSelector');
+    
         var calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'timeGridWeek',
           events: {
-            url: './fcJson.json'
+            url: selector.value
           }
         });
-
+    
         calendar.render();
+    
+        // 🔁 Change event source when dropdown changes
+        selector.addEventListener('change', function() {
+          calendar.removeAllEventSources(); // remove old source
+    
+          calendar.addEventSource({
+            url: selector.value
+          });
+        });
       });
     </script>
   </head>
 
   <body>
+      <select id="eventSelector">
+        <option value="./fcJson1.json">file 1</option>
+        <option value="./fcJson2.json">file 2</option>
+      </select>
     <div id='calendar'></div>
   </body>
 </html>
